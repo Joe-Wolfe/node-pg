@@ -2,6 +2,7 @@ const express = require("express");
 const router = express.Router();
 const db = require("../db");
 const ExpressError = require("../expressError");
+const { default: slugify } = require("slugify");
 
 
 //GET /companies : Returns list of companies, like {companies: [{code, name}, ...]}
@@ -45,6 +46,16 @@ router.get("/:code", async function (req, res, next) {
 
         company.invoices = invResult.rows.map(inv => inv.id);
 
+        const industriesResult = await db.query(
+            `SELECT industries.industry
+            FROM industries
+            JOIN company_industries ON industries.code = company_industries.ind_code
+            WHERE company_industries.comp_code = $1;`,
+            [code]
+        );
+
+        company.industries = industriesResult.rows.map(ind => ind.industry);
+
         return res.json({ "company": company });
     } catch (err) {
         return next(err);
@@ -56,7 +67,8 @@ router.get("/:code", async function (req, res, next) {
 
 router.post("/", async function (req, res, next) {
     try {
-        let { code, name, description } = req.body;
+        let { name, description } = req.body;
+        let code = slugify(name, { lower: true });
 
         const result = await db.query(
             `INSERT INTO companies (code, name, description) 

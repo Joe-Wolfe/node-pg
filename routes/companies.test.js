@@ -37,7 +37,8 @@ describe("GET /companies/:code", function () {
                 code: 'apple',
                 name: 'Apple Computer',
                 description: 'Maker of OSX.',
-                invoices: [testInvoice.rows[0].id]
+                invoices: [testInvoice.rows[0].id],
+                industries: []
             }
         });
     });
